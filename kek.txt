@@ -1,0 +1,3 @@
+pip install bitstring==3.1.9
+
+https://verifier.ton.org/EQAOjm0Xm-mYbAYWT2f_lwgqQPBE3_lC9MJmGPCBbFCdxewa
