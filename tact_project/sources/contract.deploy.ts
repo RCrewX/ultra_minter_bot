@@ -3,12 +3,15 @@ import * as path from "path";
 import { Address, contractAddress } from "@ton/core";
 import { UltraMinter } from "./output/sample_UltraMinter";
 import { prepareTactDeployment } from "@tact-lang/deployer";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 (async () => {
     // Parameters
     let testnet = false;
     let packageName = "sample_UltraMinter.pkg";
-    let owner = Address.parse("EQBliyk55JnWC-7C6ayi5-i3zbg2UzTxja5kUdOlsEvpYvPU");
+    let owner = Address.parse(process.env.TON_ADDRESS || "");
     let init = await UltraMinter.init(owner);
 
     // Load required data

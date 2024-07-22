@@ -5,6 +5,7 @@ import logging
 import asyncio
 import time
 
+import os
 from io import BytesIO
 import qrcode
 from aiogram.types import BufferedInputFile
@@ -13,7 +14,9 @@ import pytonconnect.exceptions
 from pytoniq_core import Address
 from pytonconnect import TonConnect
 
-import config
+from dotenv import load_dotenv
+
+load_dotenv()
 from messages import get_comment_message, get_another_deploy_message, get_mint_message
 from connector import get_connector
 
@@ -30,7 +33,7 @@ from aiogram.client.default import DefaultBotProperties
 logger = logging.getLogger(__file__)
 
 dp = Dispatcher()
-bot = Bot(config.TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 
 @dp.message(CommandStart())
@@ -42,6 +45,7 @@ async def command_start_handler(message: Message):
     mk_b = InlineKeyboardBuilder()
     if connected:
         mk_b.button(text='Send Transaction', callback_data='send_tr')
+        mk_b.button(text='Send Custom Message', callback_data='send_cm')
         mk_b.button(text='Send Another Deploy', callback_data='send_ad')
         mk_b.button(text='Send Mint', callback_data='send_mt')
         mk_b.button(text='Disconnect', callback_data='disconnect')
@@ -68,7 +72,7 @@ async def send_another_deploy(message: Message):
         'valid_until': int(time.time() + 3600),
         'messages': [
             get_another_deploy_message(
-                destination_address='0:0e8e6d179be9986c06164f67ff97082a40f044dff942f4c26618f0816c509dc5',
+                destination_address=os.getenv("MINTER"),
                 amount=100,
             )
         ]
@@ -99,7 +103,7 @@ async def send_mint_one(message: Message):
         'valid_until': int(time.time() + 3600),
         'messages': [
             get_mint_message(
-                destination_address='0:66d354bd174dd2ec9e11822e1ffe801735ba745cac3d12a0036e4ea33b4cb8f6',
+                destination_address=os.getenv("MINT_FROM"),
             )
         ]
     }
@@ -117,6 +121,11 @@ async def send_mint_one(message: Message):
         await message.answer(text=f'Unknown error: {e}')
 
 
+# @dp.message(Command('transaction'))
+# async def send_transaction(message: Message):
+
+
+
 @dp.message(Command('transaction'))
 async def send_transaction(message: Message):
     connector = get_connector(message.chat.id)
@@ -130,7 +139,7 @@ async def send_transaction(message: Message):
         'messages': [
             get_comment_message(
                 destination_address='0:658b2939e499d60beec2e9aca2e7e8b7cdb8365334f18dae6451d3a5b04be962',
-                amount=int(0.01 * 10 ** 9),
+                amount_in_ton=0.01,
                 comment='hello world!'
             )
         ]
@@ -205,6 +214,8 @@ async def main_callback_handler(call: CallbackQuery):
     if data == "start":
         await command_start_handler(message)
     elif data == "send_tr":
+        await send_transaction(message)
+    elif data == "send_cm":
         await send_transaction(message)
     elif data == "send_ad":
         await send_another_deploy(message)

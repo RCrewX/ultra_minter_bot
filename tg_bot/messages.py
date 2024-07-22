@@ -5,22 +5,17 @@ from base64 import urlsafe_b64encode
 from pytoniq_core import begin_cell, Cell
 
 
-def get_comment_message(destination_address: str, amount: int, comment: str) -> dict:
+def get_comment_message(destination_address: str, amount_in_ton: float, comment: str) -> dict:
 
-    data = {
-        'address': destination_address,
-        'amount': str(amount),
-        'payload': urlsafe_b64encode(
+    payload = urlsafe_b64encode(
             begin_cell()
             .store_uint(0, 32)  # op code for comment message
             .store_string(comment)  # store comment
             .end_cell()  # end cell
             .to_boc()  # convert it to boc
-        )
-        .decode()  # encode it to urlsafe base64
-    }
+        ).decode()
 
-    return data
+    return get_custom_message(destination_address, amount_in_ton, payload)
 
 def get_another_deploy_message(destination_address: str, amount: int, content = None) -> dict:
     op = 0x2ef1ae55
@@ -37,7 +32,7 @@ def get_another_deploy_message(destination_address: str, amount: int, content = 
     # boc = file.read()
     # file.close()
     
-    cont_cell = begin_cell().store_uint(1, 8).store_snake_string(str("https://nftstorage.link/12412512")).end_cell()
+    cont_cell = begin_cell().store_uint(1, 8).store_snake_string(str("https://tonraffles.store/raffjetton/raffmetadata.json")).end_cell()
     
     body = (begin_cell()
             .store_uint(op, 32)
@@ -58,17 +53,28 @@ def get_another_deploy_message(destination_address: str, amount: int, content = 
 
 
 def get_mint_message(destination_address: str):
-    data = {
-        'address': destination_address,
-        'amount': str(int(0.1 * 10**9)),
-        'payload': urlsafe_b64encode(
+    # data = {
+    #     'address': destination_address,
+    #     'amount': str(int(0.1 * 10**9)),
+    #     'payload':   # encode it to urlsafe base64
+    # }
+    payload = urlsafe_b64encode(
             begin_cell()
             .store_uint(0, 32)  # op code for comment message
             .store_string("Mint: 100")  # store comment
             .end_cell()  # end cell
             .to_boc()  # convert it to boc
-        )
-        .decode()  # encode it to urlsafe base64
-    }
+        ).decode()
+    
+    return get_custom_message(destination_address, 0.1, payload)
 
+
+def get_custom_message(destination_address: str, amount_in_ton: float, payload: str) -> dict:
+    data = {
+        'address': destination_address,
+        'amount': str(int(amount_in_ton * 10**9)),
+        'payload': payload  # encode it to urlsafe base64
+    }
     return data
+
+

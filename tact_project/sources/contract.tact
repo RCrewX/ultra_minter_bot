@@ -28,10 +28,7 @@ contract UltraMinter with Deployable {
             value: 0, 
             bounce: false,
             mode: SendRemainingValue,
-            body: Mint{ 
-                amount: 1,
-                receiver: self.owner,
-            }.toCell(),
+            body: "Mint: 100".asComment(),
             code: winit.code,
             data: winit.data
         });
